@@ -1,0 +1,140 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess Website</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+        #board {
+            margin: 20px auto;
+        }
+        #controls {
+            margin: 20px;
+        }
+        #auth {
+            margin: 20px;
+        }
+        input {
+            margin: 5px;
+            padding: 10px;
+            font-size: 16px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Welcome to Online Chess</h1>
+
+    <!-- Signup/Login Form -->
+    <div id="auth">
+        <h2>Sign Up / Login</h2>
+        <input type="text" id="username" placeholder="Enter your username" />
+        <input type="password" id="password" placeholder="Enter your password" />
+        <button id="signupBtn">Sign Up</button>
+        <button id="loginBtn">Login</button>
+        <p id="authMessage"></p>
+    </div>
+
+    <!-- Chessboard -->
+    <div id="board" style="width: 400px; display: none;"></div>
+    <div id="controls" style="display: none;">
+        <button id="startBtn">Start Position</button>
+        <button id="clearBtn">Clear Board</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+    <script>
+        // Mock database for demo purposes
+        const users = {};
+
+        // Handle signup
+        document.getElementById('signupBtn').addEventListener('click', () => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (users[username]) {
+                document.getElementById('authMessage').textContent = 'Username already exists. Please choose another.';
+            } else {
+                users[username] = password;
+                document.getElementById('authMessage').textContent = 'Signup successful! You can now log in.';
+            }
+        });
+
+        // Handle login
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            if (users[username] === password) {
+                document.getElementById('authMessage').textContent = `Welcome, ${username}!`;
+                document.getElementById('auth').style.display = 'none';
+                document.getElementById('board').style.display = 'block';
+                document.getElementById('controls').style.display = 'block';
+            } else {
+                document.getElementById('authMessage').textContent = 'Invalid username or password.';
+            }
+        });
+
+        // Initialize Chess.js for game logic
+        const game = new Chess();
+
+        // Initialize Chessboard.js
+        const board = Chessboard('board', {
+            draggable: true,
+            position: 'start',
+            onDrop: onDrop
+        });
+
+        // Handle piece drop event
+        function onDrop(source, target) {
+            // Try to make the move
+            const move = game.move({ from: source, to: target, promotion: 'q' });
+
+            // If the move is illegal, snap the piece back
+            if (move === null) {
+                return 'snapback';
+            }
+
+            // Check for game over conditions
+            if (game.game_over()) {
+                if (game.in_checkmate()) {
+                    alert('Checkmate!');
+                } else if (game.in_stalemate()) {
+                    alert('Stalemate!');
+                } else if (game.in_draw()) {
+                    alert('Draw!');
+                } else if (game.in_threefold_repetition()) {
+                    alert('Threefold repetition!');
+                } else if (game.insufficient_material()) {
+                    alert('Insufficient material!');
+                }
+            }
+        }
+
+        // Buttons to control the board
+        document.getElementById('startBtn').addEventListener('click', () => {
+            game.reset();
+            board.start();
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            game.clear();
+            board.clear();
+        });
+    </script>
+</body>
+</html>
